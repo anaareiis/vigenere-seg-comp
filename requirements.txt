@@ -1,1 +1,1 @@
-# Nenhuma dependência externa é necessária — apenas biblioteca padrão do Python.
+# A Parte II usa somente a biblioteca padrao do Python.
