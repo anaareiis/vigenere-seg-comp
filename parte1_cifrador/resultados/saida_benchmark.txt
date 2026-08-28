@@ -1,0 +1,14 @@
+Comando:
+./build/vigenere_benchmark 16 10
+
+Ambiente:
+Build Release, g++ 13.3.0
+
+Saida:
+Entrada: 16 MiB
+Iteracoes: 10
+API com retorno: 211.74 MiB/s
+Nucleo in-place: 247.35 MiB/s
+Checksum: 1996
+
+A vazao varia conforme processador, compilador e carga da maquina.
