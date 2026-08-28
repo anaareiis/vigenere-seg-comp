@@ -1,0 +1,5 @@
+Comando:
+./build/vigenere_cifrador CHAVE "Segurança 2026!"
+
+Saida:
+Criptograma: Ulgpvcuça 2026!
