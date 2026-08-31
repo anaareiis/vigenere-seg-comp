@@ -1,0 +1,23 @@
+Build: Release
+Compilador: g++ 13.3.0
+
+[OK] vetor classico
+[OK] preservacao de caixa
+[OK] caracteres nao alfabeticos
+[OK] preservacao de UTF-8
+[OK] mensagem vazia
+[OK] API in-place
+[OK] tamanho da chave
+[OK] 500 casos determinísticos
+[OK] validacao de chaves
+9/9 testes passaram.
+
+CTest:
+vigenere_testes: passou
+vigenere_cli_vetor_classico: passou
+vigenere_cli_chave_invalida: passou
+100% tests passed, 0 tests failed out of 3
+
+Sanitizadores:
+AddressSanitizer e UndefinedBehaviorSanitizer
+100% tests passed, 0 tests failed out of 3
