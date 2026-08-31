@@ -1,0 +1,257 @@
+% =====================================================================
+% NOTA (remover antes da entrega final):
+% Este documento segue a estrutura exigida em formatorelatorios.pdf
+% (artigo IEEE de conferencia, duas colunas, sem folha de capa, secoes a-e).
+%
+% PONTO A CONFIRMAR COM A PROFESSORA:
+% O formato geral diz "max 03 autores", mas o grupo tem 4 integrantes.
+% Para o tamanho, adotou-se o limite especifico de 4 paginas do roteiro.
+% As secoes sobre topologia de rede foram adaptadas ao ambiente de execucao.
+%
+% Para compilar: pdflatex relatorio.tex (duas vezes, para o indice/refs)
+% Se nao houver LaTeX instalado localmente, use o Overleaf
+% (overleaf.com) e importe este arquivo com o template "IEEE Conference".
+% =====================================================================
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\pendente}[1]{\textcolor{red}{\textbf{[PENDENTE: #1]}}}
+
+\begin{document}
+
+\title{Cifra de Vigenère: Implementação e Criptoanálise\\
+\large Trabalho de Implementação 1 --- CIC0201 Segurança Computacional}
+
+% NOTA: formatorelatorios.pdf pede no maximo 3 autores; o grupo tem 4.
+% Ajustar conforme orientacao da professora.
+\author{
+\IEEEauthorblockN{Ana Luísa Reis Nascente}
+\IEEEauthorblockA{Matrícula: 211045688}
+\and
+\IEEEauthorblockN{Gabriel de Sousa}
+\IEEEauthorblockA{Matrícula: 211056000}
+\and
+\IEEEauthorblockN{Marina Pimentel Moreno}
+\IEEEauthorblockA{Matrícula: 222014071}
+\and
+\IEEEauthorblockN{Pedro de Paula Campos}
+\IEEEauthorblockA{Matrícula: 231036050}
+}
+
+\maketitle
+
+\begin{abstract}
+Este trabalho apresenta a implementação da cifra de Vigenère e de um
+ataque para recuperação da chave por propriedades estatísticas da
+linguagem. A implementação atual inclui o cifrador e a estimativa do
+tamanho da chave por Índice de Coincidência, validados por testes. A
+recuperação das letras da chave e os resultados sobre os dois
+criptogramas serão incorporados após a integração final.
+\end{abstract}
+
+\begin{IEEEkeywords}
+cifra de Vigenère, criptografia clássica, criptoanálise, índice de coincidência, análise de frequência
+\end{IEEEkeywords}
+
+\section{Introdução}
+
+Este relatório se insere no módulo de Criptografia Simétrica da
+disciplina CIC0201 -- Segurança Computacional, e documenta o Trabalho
+de Implementação 1: a cifra de Vigenère, cifra de substituição
+polialfabética historicamente relevante por ilustrar, de forma
+simples, dois princípios centrais da criptografia moderna --- a
+diferença entre um espaço de chaves grande e segurança real, e como a
+reutilização cíclica de uma chave curta introduz uma estrutura
+estatística explorável \cite{roteiro}.
+
+O trabalho está dividido em duas partes complementares: (i) um
+cifrador/decifrador a ser implementado do zero, sem bibliotecas
+criptográficas prontas; e (ii) um ataque de criptoanálise capaz de
+recuperar a chave de um criptograma desconhecido a partir de
+propriedades estatísticas da língua portuguesa e inglesa. O restante
+deste relatório está organizado da seguinte forma: a Seção
+\ref{sec:fundamentacao} apresenta a fundamentação teórica da cifra e
+as decisões de implementação da Parte I; a Seção
+\ref{sec:experimental} descreve o ambiente experimental, a
+metodologia do ataque da Parte II e os resultados intermediários; a
+Seção \ref{sec:conclusoes} apresenta as
+conclusões técnicas; e a bibliografia lista as referências
+utilizadas.
+
+\section{Fundamentação Teórica}
+\label{sec:fundamentacao}
+
+\subsection{A cifra de Vigenère}
+
+A cifra de Vigenère desloca cada letra do texto claro por um valor
+que depende da posição correspondente de uma chave, repetida
+ciclicamente sobre a mensagem. Para uma letra do texto claro $P_i$ e
+a letra da chave na posição $i \bmod L$ ($L$ = tamanho da chave),
+convertidas para valores numéricos de 0 a 25:
+
+\begin{align}
+\text{Cifração:}\quad   & C_i = (P_i + K_{i \bmod L}) \bmod 26 \\
+\text{Decifração:}\quad & P_i = (C_i - K_{i \bmod L} + 26) \bmod 26
+\end{align}
+
+Diferentemente da cifra de César (deslocamento único), a chave do
+Vigenère é uma sequência, gerando um espaço de chaves de tamanho
+$26^L$ --- para $L = 14$, por exemplo, aproximadamente $2^{66}$
+chaves possíveis, tornando a busca exaustiva inviável. Essa aparente
+robustez não impede, contudo, o ataque estatístico descrito na Seção
+\ref{sec:experimental}, precisamente porque a chave se repete
+ciclicamente \cite{fundamentos}.
+
+\subsection{Tratamento do alfabeto}
+
+O grupo adotou a seguinte política, comum a toda a implementação:
+
+\begin{itemize}
+\item Alfabeto de cifração: A--Z (ASCII), sem distinção entre
+  maiúsculas e minúsculas para o cálculo do deslocamento.
+\item O caso original (maiúscula/minúscula) de cada letra é
+  preservado no criptograma.
+\item Espaços, números, pontuação e demais caracteres fora de A--Z
+  são copiados sem alteração e \textbf{não consomem posição da
+  chave}.
+\item A chave é validada: deve ser não vazia e conter apenas letras
+  A--Z.
+\end{itemize}
+
+\subsection{Fundamentos da criptoanálise (Índice de Coincidência)}
+
+O ataque de recuperação de chave apoia-se no Índice de Coincidência
+(IC), medida proposta por Friedman para quantificar a concentração
+estatística das letras \cite{friedman}:
+
+\begin{equation}
+IC = \frac{\sum_i n_i (n_i - 1)}{N (N - 1)}
+\end{equation}
+
+onde $n_i$ é a frequência da letra $i$ no texto e $N$ o tamanho do
+texto. Um texto em linguagem natural tem IC próximo de
+$0{,}065$--$0{,}075$; um texto com distribuição uniforme de letras
+(como um criptograma de Vigenère mal alinhado) tem IC próximo de
+$1/26 \approx 0{,}038$. Essa diferença é a base para estimar o
+tamanho da chave (detalhado na Seção \ref{sec:experimental}).
+
+\section{Ambiente Experimental e Análise de Resultados}
+\label{sec:experimental}
+
+\subsection{Descrição do Cenário}
+
+\begin{itemize}
+\item \textbf{Linguagem e ferramentas:} C++17, biblioteca padrão,
+  CMake 3.22.1 e testes executáveis próprios, sem bibliotecas de cifra
+  ou criptoanálise pronta.
+\item \textbf{Ambiente de compilação/execução:} Ubuntu 22.04, com
+  compilador g++ 11.4.0. A validação desta versão foi feita localmente
+  em modo de linha de comando.
+\item \textbf{Dados experimentais:} dois criptogramas fornecidos pela
+  disciplina --- um gerado a partir de texto em português, outro a
+  partir de texto em inglês, cifrados com chaves diferentes.
+  \pendente{adicionar os arquivos oficiais à pasta \texttt{textos/}}
+\item \textbf{Estrutura do código:} cifrador
+  (\texttt{parte1\_cifrador/}) implementado como biblioteca
+  reutilizável, com interface de linha de comando, testes
+  automatizados e benchmark de desempenho; módulo de criptoanálise
+  (\texttt{parte2\_criptoanalise/}) com estimador de tamanho da chave
+  e testes próprios.
+\end{itemize}
+
+\subsection{Análise de Resultados}
+
+Metodologia do ataque de recuperação de chave, alinhada à
+fundamentação da Seção \ref{sec:fundamentacao}:
+
+\begin{enumerate}
+\item \textbf{Estimativa do tamanho da chave}: para cada tamanho
+  candidato $k$, o criptograma é dividido em $k$ subconjuntos
+  (posições $0, k, 2k, \dots$; $1, k{+}1, 2k{+}1, \dots$; etc.) e o
+  IC médio dos subconjuntos válidos é calculado. Os tamanhos são
+  ordenados pelo maior IC médio; quando a diferença é inferior à
+  tolerância de $0{,}003$, o menor tamanho é priorizado, reduzindo
+  falsos candidatos que sejam múltiplos da chave real.
+\item \textbf{Recuperação de cada letra da chave}: com o tamanho $k$
+  estimado, cada subconjunto corresponde a um deslocamento fixo
+  (equivalente a uma Cifra de César). Calcula-se a frequência
+  relativa de cada letra do subconjunto e testam-se os 26
+  deslocamentos possíveis, comparando a distribuição observada com a
+  distribuição esperada do idioma \cite{frequencias}; o deslocamento de maior
+  correlação será adotado como candidato à letra da chave.
+\item \textbf{Reconstrução e validação}: as letras recuperadas
+  formarão a chave candidata, que será usada para decifrar o criptograma
+  completo. O resultado será avaliado quanto à legibilidade; se
+  necessário, letras específicas são refinadas manualmente.
+\end{enumerate}
+
+Os componentes disponíveis foram validados separadamente. O cifrador
+passou pelos nove grupos de testes existentes, incluindo o vetor
+clássico, preservação de caixa, caracteres não alfabéticos, chave
+inválida e 500 casos determinísticos. O estimador identificou como
+primeira opção os tamanhos corretos 5, 7, 11 e 16 nos quatro
+criptogramas de teste. Esses resultados verificam os módulos já
+implementados, mas ainda não equivalem à validação do ataque completo.
+
+\begin{table}[htbp]
+\caption{Resultados obtidos \pendente{preencher após execução da Parte II}}
+\label{tab:resultados}
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criptograma} & \textbf{Idioma} & \textbf{Tam. chave} & \textbf{Legível?} \\
+\hline
+Criptograma 1 & Português & --- & --- \\
+\hline
+Criptograma 2 & Inglês & --- & --- \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Ajustes e problemas encontrados:} tamanhos múltiplos da chave
+podem apresentar IC elevado; por isso, o estimador introduz uma
+tolerância estatística e favorece o menor candidato em resultados
+próximos. A recuperação das letras, a decifração e a avaliação de
+legibilidade dependem da integração ainda pendente.
+
+\section{Conclusões}
+\label{sec:conclusoes}
+
+Os resultados intermediários demonstram que um espaço de chaves grande
+($26^L$) não é
+garantia de segurança quando a chave se repete ciclicamente sobre o
+texto --- a mesma vulnerabilidade que o Índice de Coincidência
+explora. Os testes confirmam a correção da cifração e mostram que o IC
+é capaz de priorizar o tamanho verdadeiro nas amostras disponíveis.
+Ainda é necessário integrar a análise de frequências e avaliar os dois
+criptogramas oficiais antes de concluir sobre a recuperação das chaves.
+Como contraponto teórico, uma chave do mesmo tamanho do
+texto, gerada aleatoriamente e usada uma única vez (\emph{One-Time
+Pad}), tornaria esse ataque estatístico ineficaz --- a fragilidade
+está na repetição da chave, não na estrutura da cifra em si.
+
+\begin{thebibliography}{9}
+\bibitem{roteiro}
+Roteiro do Trabalho de Implementação 1 --- CIC0201, Profa. Priscila Solis, UnB, 2026.
+
+\bibitem{fundamentos}
+Slides de Criptografia Fundamentos (\textit{lec1-2026}, \textit{lec2-total}, \textit{introduction-part2}) --- CIC0201, UnB, 2026.
+
+\bibitem{friedman}
+W. F. Friedman, \textit{The Index of Coincidence and Its Applications
+in Cryptography}. Riverbank Laboratories, 1922.
+
+\bibitem{frequencias}
+Wikipédia, ``Frequência de letras.'' [Online]. Disponível em:
+\url{https://pt.wikipedia.org/wiki/Frequencia_de_letras}.
+Acesso em: 31 ago. 2026.
+\end{thebibliography}
+
+\end{document}
