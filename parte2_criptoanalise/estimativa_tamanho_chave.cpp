@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cctype>
 
+#include "estimativa_tamanho_chave.h"
+
 using namespace std;
 
 /**
@@ -13,6 +15,7 @@ using namespace std;
  * @return Um vetor de inteiros com os valores prováveis do tamanho da chave, em ordem descrescente de probabilidade. Ou seja, o primeiro elemento é o mais provável.
  * Caso o cyphertext seja suficientemente grande, o primeiro elemento é quase certamente o tamanho da chave.
  */
+
 vector<int> estima_tamanho_chave(
     const string &CYPHERTEXT,
     const int MAX_TAMANHO_CHAVE
@@ -92,8 +95,22 @@ vector<int> estima_tamanho_chave(
 
     }
 
-    // Ordenação decrescente pelo ioc
-    sort(ioc_tamanho.begin(), ioc_tamanho.end(), [](pair<double,int> a, pair<double,int> b) {return a.first > b.first;} );
+    // Ordenação inteligente com margem de tolerância para priorizar chaves menores
+    //  (Tamanhos múltiplos do tamanho da chave têm IoC alto também. Por isso, deve-se priorizar chaves menores)
+    sort(ioc_tamanho.begin(), ioc_tamanho.end(), [](pair<double,int> a, pair<double,int> b) {
+        
+        // Tolerância do "empate técnico" no IoC (ex: diferença menor que 0.005)
+        const double TOLERANCIA = 0.003; 
+        
+        double diferenca = abs(a.first - b.first);
+        if (diferenca < TOLERANCIA) {
+            // Se tiver empate técnico, a menor chave ganha
+            return a.second < b.second; 
+        }
+        
+        // Se a diferença for grande, ordena normalmente (Maior IoC ganha)
+        return a.first > b.first; 
+    });
 
     // Novo vetor só com os tamanhos
     vector<int> estimativas_ordenadas;
@@ -104,21 +121,21 @@ vector<int> estima_tamanho_chave(
     return estimativas_ordenadas;
 }
 
-// Teste simples
-int main() {
+// // Teste simples
+// int main() {
 
-    vector<int> resultado_teste = estima_tamanho_chave(
-        (
-            // Tamanho da chave: 6
-            "Dlb X fiuk mmizczv ih mql pdp onc bwbg ozaityge qsxo qw ltgcwekxgu rcmplitv icw dtrqhbbi gixg kcj jdkb cel X pwnc oxos afc p vcogttms ctkdnbv fn ias upaixa, cel tqdqlvs mvg rkinon kmpvvkeoh ht vym vksck mmizqimg ht vym ikivy, bwx acjbtk-pwztsxf qw pjfop yieiwpvah. Gc qem gxxgtbh, wwucqzxg, qi ikhwfj xaxoulzt bhuvtu, userchx wv za eescjcgx, pwk jtvowjm iacuv ewh rq ewi dbqn pdp hq gcglig gtttgwim gthkfvpeza vvrhipkmg vcpjmfnsptmh mvck igx szkztfsnp xpbbhlt. Chf cxixg wu kptks cegdgs yyw ahjgj wg iitjctl ct umhbfgj bd hpvrqc ioke wu bhuvtu, userchx wv za etwp, sci userchx cetihbcprtar qkikjfgvrvrxg qtkjk wp npxvv vfqa tbf gixg qce xghqwim wba ufut zfgrb eescjcgx. Hq kizx o viqkbon vfpfdnv, ewbqj fn jl sxvz jgrgibpdsu ciqhfkfch ivajqrtz gomgvwuv, mmvsrk bd hpvrqc lcov isoopkivx ttfu xm? Pwk ewh vcj icr fkxpi mc hzvs yowcb lbhj r upg kjf kwhcuva ih spawn t dnvihnfg kppm vcj vd tbpfgxgu efvhxewvvrxg, qi wcx kjf ikhwfj i etwp kppm dtfljvsu ew gxgwcbpgh rcmplitv? Wc mvg fbwxf jrvs, ps fvvdnbev exmv tzowmsqla xgrkxvpmwqe icw rkjtxds ovv lac cim hh pgxcxesf rvs wsofzpewbvl qr hjv kwtfoj wu izgrajks qw bwx aqdmcm, gq stxgrgu jn wsuzzt, mvck bwxm ervchh hfztlsg"
-        ),
-        10
-    );
+//     vector<int> resultado_teste = estima_tamanho_chave(
+//         (
+//             // Tamanho da chave: 6
+//             "Dlb X fiuk mmizczv ih mql pdp onc bwbg ozaityge qsxo qw ltgcwekxgu rcmplitv icw dtrqhbbi gixg kcj jdkb cel X pwnc oxos afc p vcogttms ctkdnbv fn ias upaixa, cel tqdqlvs mvg rkinon kmpvvkeoh ht vym vksck mmizqimg ht vym ikivy, bwx acjbtk-pwztsxf qw pjfop yieiwpvah. Gc qem gxxgtbh, wwucqzxg, qi ikhwfj xaxoulzt bhuvtu, userchx wv za eescjcgx, pwk jtvowjm iacuv ewh rq ewi dbqn pdp hq gcglig gtttgwim gthkfvpeza vvrhipkmg vcpjmfnsptmh mvck igx szkztfsnp xpbbhlt. Chf cxixg wu kptks cegdgs yyw ahjgj wg iitjctl ct umhbfgj bd hpvrqc ioke wu bhuvtu, userchx wv za etwp, sci userchx cetihbcprtar qkikjfgvrvrxg qtkjk wp npxvv vfqa tbf gixg qce xghqwim wba ufut zfgrb eescjcgx. Hq kizx o viqkbon vfpfdnv, ewbqj fn jl sxvz jgrgibpdsu ciqhfkfch ivajqrtz gomgvwuv, mmvsrk bd hpvrqc lcov isoopkivx ttfu xm? Pwk ewh vcj icr fkxpi mc hzvs yowcb lbhj r upg kjf kwhcuva ih spawn t dnvihnfg kppm vcj vd tbpfgxgu efvhxewvvrxg, qi wcx kjf ikhwfj i etwp kppm dtfljvsu ew gxgwcbpgh rcmplitv? Wc mvg fbwxf jrvs, ps fvvdnbev exmv tzowmsqla xgrkxvpmwqe icw rkjtxds ovv lac cim hh pgxcxesf rvs wsofzpewbvl qr hjv kwtfoj wu izgrajks qw bwx aqdmcm, gq stxgrgu jn wsuzzt, mvck bwxm ervchh hfztlsg"
+//         ),
+//         10
+//     );
 
-    for (int tam : resultado_teste) {
-        cout << tam << " > ";
-    }
-    cout << '\n';
+//     for (int tam : resultado_teste) {
+//         cout << tam << " > ";
+//     }
+//     cout << '\n';
 
-    return 0;
-}
+//     return 0;
+// }
