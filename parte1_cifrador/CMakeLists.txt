@@ -73,6 +73,14 @@ if(VIGENERE_BUILD_TESTS)
             PROPERTIES PASS_REGULAR_EXPRESSION "Criptograma: Lxfopv ef rnhr!"
         )
         add_test(
+            NAME vigenere_cli_decifracao
+            COMMAND vigenere_cifrador --decrypt LEMON "Lxfopv ef rnhr!"
+        )
+        set_tests_properties(
+            vigenere_cli_decifracao
+            PROPERTIES PASS_REGULAR_EXPRESSION "Texto claro: Attack at dawn!"
+        )
+        add_test(
             NAME vigenere_cli_chave_invalida
             COMMAND vigenere_cifrador "CHAVE 1" "Mensagem"
         )

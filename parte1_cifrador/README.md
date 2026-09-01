@@ -1,6 +1,6 @@
 # Parte I — Cifrador de Vigenère
 
-Implementação própria da cifração de Vigenère em C++17, organizada como biblioteca reutilizável, programa de linha de comando, testes e benchmark. Este módulo é responsável exclusivamente pela cifração e está preparado para integração com os demais componentes do trabalho.
+Implementação própria da cifração e decifração de Vigenère em C++17, organizada como biblioteca reutilizável, programa de linha de comando, testes e benchmark.
 
 ## Responsável pelo cifrador
 
@@ -19,6 +19,7 @@ Para uma letra `Pᵢ` e o deslocamento correspondente `Kᵢ`, ambos no intervalo
 
 ```text
 Cᵢ = (Pᵢ + Kᵢ) mod 26
+Pᵢ = (Cᵢ - Kᵢ + 26) mod 26
 ```
 
 A chave é convertida uma única vez em deslocamentos numéricos. Durante a cifração ela é percorrida circularmente sem construir uma chave expandida. O resultado é criado com uma única cópia da mensagem, e a API `encrypt_in_place` permite eliminar essa alocação quando o chamador pode alterar o próprio buffer.
@@ -52,6 +53,7 @@ Com argumentos:
 
 ```bash
 ./build/vigenere_cifrador LEMON "Attack at dawn!"
+./build/vigenere_cifrador --decrypt LEMON "Lxfopv ef rnhr!"
 ```
 
 Ou no modo interativo:
@@ -76,6 +78,7 @@ No código consumidor:
 
 vigenere::VigenereCipher cipher{"LEMON"};
 const std::string ciphertext = cipher.encrypt("Attack at dawn!");
+const std::string plaintext = cipher.decrypt(ciphertext);
 ```
 
 ## Testes
