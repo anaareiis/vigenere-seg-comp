@@ -1,8 +1,9 @@
 # Textos e resultados de teste
 
 Esta pasta reúne os arquivos usados na demonstração do pipeline de
-criptoanálise. Eles foram produzidos pelo grupo e não correspondem aos dois
-criptogramas oficiais mencionados no roteiro.
+criptoanálise. Como os criptogramas previstos no roteiro não foram
+fornecidos, a professora autorizou o grupo a produzir os próprios dados de
+teste.
 
 ## Teste em português
 
@@ -58,22 +59,36 @@ O teste é considerado aprovado quando:
 3. o texto claro produzido coincide com o arquivo de referência;
 4. caracteres não alfabéticos permanecem inalterados.
 
-## Criptogramas oficiais
+## Demonstração do efeito do tamanho da chave
 
-Quando os arquivos oficiais forem disponibilizados, eles devem ser salvos na
-pasta `textos/`, com nomes distintos, por exemplo:
+Arquivos:
 
-```text
-textos/criptograma_portugues.txt
-textos/criptograma_ingles.txt
-```
+- `demo_chaves.sh`: cifra `texto_claro_teste_portugues.txt` (ou outra
+  mensagem informada) com cada chave de um arquivo de lista e roda o ataque
+  de criptoanálise em cima do resultado, mostrando se o pipeline conseguiu
+  recuperar a chave de volta;
+- `chaves_pequenas.txt`: uma chave curta (`BOA`, 3 letras);
+- `chaves_grandes.txt`: uma chave longa (33 letras), para ilustrar o caso em
+  que a chave é maior que o texto e a criptoanálise estatística deixa de
+  funcionar;
+- `tipo_chave.txt`: exemplos de invocação do script.
 
-Eles poderão ser processados com:
+Requer o build unificado (`build/parte1_cifrador/vigenere_cifrador` e
+`build/vigenere_ataque`, ver seção "Pipeline de recuperação da chave" no
+README da raiz). Executando a partir da raiz do repositório:
 
 ```bash
-./build/vigenere_ataque pt 20 textos/criptograma_portugues.txt 10
-./build/vigenere_ataque en 20 textos/criptograma_ingles.txt 10
+# chave curta, mensagem padrão
+"textos para testes/demo_chaves.sh"
+
+# chave longa, mensagem própria
+"textos para testes/demo_chaves.sh" "textos para testes/chaves_grandes.txt" "MENSAGEM CURTA"
 ```
 
-Os tamanhos, chaves, textos recuperados e eventuais refinamentos deverão ser
-registrados no relatório final.
+Com `chaves_pequenas.txt` (chave de 3 letras), o pipeline recupera a chave
+normalmente. Com `chaves_grandes.txt` (chave de 33 letras) sobre uma
+mensagem curta, cada posição da chave recebe poucas ou nenhuma letra
+repetida, e a análise de frequência não tem amostra suficiente para
+convergir — o ataque falha ou erra a chave, ilustrando por que uma chave do
+tamanho da mensagem (o limite do One-Time Pad) inviabiliza esse método
+estatístico.
