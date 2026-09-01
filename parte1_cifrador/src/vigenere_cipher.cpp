@@ -35,6 +35,18 @@ constexpr char add_modulo_alphabet(
     return static_cast<char>(base + encrypted);
 }
 
+// Implementa P_i = (C_i - K_i + 26) mod 26 sobre o alfabeto ASCII.
+constexpr char subtract_modulo_alphabet(
+    const unsigned char value,
+    const std::uint8_t shift
+) noexcept {
+    const auto base = is_upper_ascii(value) ? static_cast<unsigned char>('A')
+                                            : static_cast<unsigned char>('a');
+    const auto encrypted = static_cast<unsigned int>(value - base);
+    const auto decrypted = (encrypted + 26U - shift) % 26U;
+    return static_cast<char>(base + decrypted);
+}
+
 }
 
 namespace vigenere {
@@ -75,6 +87,29 @@ void VigenereCipher::encrypt_in_place(std::string& plaintext) const noexcept {
         ++key_index;
         if(key_index == key_shifts_.size()) {
             // Reinicia a chave circularmente sem criar uma versão expandida.
+            key_index = 0;
+        }
+    }
+}
+
+std::string VigenereCipher::decrypt(const std::string_view ciphertext) const {
+    std::string plaintext{ciphertext};
+    decrypt_in_place(plaintext);
+    return plaintext;
+}
+
+void VigenereCipher::decrypt_in_place(std::string& ciphertext) const noexcept {
+    std::size_t key_index = 0;
+
+    for(char& raw_character : ciphertext) {
+        const auto character = static_cast<unsigned char>(raw_character);
+        if(!is_upper_ascii(character) && !is_lower_ascii(character)) {
+            continue;
+        }
+
+        raw_character = subtract_modulo_alphabet(character, key_shifts_[key_index]);
+        ++key_index;
+        if(key_index == key_shifts_.size()) {
             key_index = 0;
         }
     }

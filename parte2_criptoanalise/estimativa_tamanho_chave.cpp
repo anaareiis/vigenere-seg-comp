@@ -35,8 +35,6 @@ vector<int> estima_tamanho_chave(
     int tamanho_cyphertext_limpo = cyphertext_limpo.length();
 
 
-    double maior_ioc_medio = -1;
-    int estimativa_tamanho = -1;
     vector<pair<double,int>> ioc_tamanho;
     
     // Itera pelos tamanhos possívieis, até o tamanho máximo

@@ -22,11 +22,11 @@ ministrada pela Profa. Priscila Solis na Universidade de Brasília.
 - [x] Validação da chave de entrada.
 - [x] Estimativa de tamanhos prováveis da chave por Índice de Coincidência.
 - [x] Testes da estimativa com chaves de tamanhos 5, 7, 11 e 16.
-- [ ] Decifração com chave conhecida.
+- [x] Decifração com chave conhecida.
 - [x] Análise de frequência para português e inglês.
 - [x] Recuperação das letras e reconstrução da chave para tamanho conhecido.
-- [ ] Decifração automática dos criptogramas com as chaves candidatas.
-- [ ] Integração e validação do pipeline completo.
+- [x] Decifração automática dos criptogramas com as chaves candidatas.
+- [x] Integração e validação do pipeline completo com dados de teste.
 - [ ] Resultados finais e conclusão do relatório.
 
 ## Estrutura do projeto
@@ -91,14 +91,36 @@ Os quatro casos de teste existentes identificam corretamente chaves de
 tamanhos 5, 7, 11 e 16. A explicação detalhada do método está em
 [`parte2_criptoanalise/README.md`](parte2_criptoanalise/README.md).
 
-## Pipeline planejado para recuperação da chave
+## Pipeline de recuperação da chave
+
+O executável integrado realiza as seguintes etapas:
 
 1. Estimar tamanhos prováveis com o Índice de Coincidência.
 2. Dividir o criptograma segundo cada tamanho candidato.
 3. Comparar as frequências de cada grupo com distribuições de português ou
    inglês.
 4. Obter candidatos para os deslocamentos, reconstruir a chave e decifrar.
-5. Avaliar a legibilidade e refinar a chave quando necessário.
+5. Exibir os melhores candidatos para avaliação de legibilidade e eventual
+   refinamento.
+
+Para compilar todo o projeto e executar os testes:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+```
+
+Para atacar um criptograma salvo em arquivo:
+
+```bash
+./build/vigenere_ataque pt 20 textos/criptograma_portugues.txt
+./build/vigenere_ataque en 20 textos/criptograma_ingles.txt
+```
+
+Os argumentos são o idioma (`pt` ou `en`), o tamanho máximo de chave e o
+caminho do arquivo. Um quarto argumento opcional define quantos candidatos
+serão exibidos; o padrão é cinco.
 
 ## Relatório
 

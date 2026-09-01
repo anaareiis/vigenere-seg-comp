@@ -1,0 +1,5 @@
+A seguranca de uma cifra nao depende apenas do tamanho do espaco de chaves. Quando uma chave curta e repetida ao longo de uma mensagem, surgem padroes estatisticos que podem ser explorados por um atacante. Na cifra de Vigenere, cada posicao da chave produz uma cifra de Cesar diferente. Se o tamanho da chave for conhecido, o criptograma pode ser separado em grupos, e cada grupo pode ser analisado individualmente.
+
+O indice de coincidencia ajuda a encontrar tamanhos provaveis para a chave. Depois dessa etapa, a frequencia das letras de cada grupo e comparada com a distribuicao esperada para o idioma portugues. O deslocamento mais provavel de cada grupo forma uma chave candidata. A chave recuperada e usada para decifrar o texto completo, e a legibilidade do resultado serve como validacao.
+
+Este texto de demonstracao foi escrito para testar todas as etapas do programa. Ele possui letras suficientes para a analise estatistica, alem de espacos, virgulas e pontos que devem ser preservados. Durante a apresentacao, o grupo pode mostrar a estimativa do tamanho, a chave encontrada e o texto claro reconstruido automaticamente pelo pipeline integrado.

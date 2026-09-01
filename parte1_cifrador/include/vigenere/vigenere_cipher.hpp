@@ -21,6 +21,8 @@ public:
 
     [[nodiscard]] std::string encrypt(std::string_view plaintext) const;
     void encrypt_in_place(std::string& plaintext) const noexcept;
+    [[nodiscard]] std::string decrypt(std::string_view ciphertext) const;
+    void decrypt_in_place(std::string& ciphertext) const noexcept;
 
     [[nodiscard]] std::size_t key_length() const noexcept;
 

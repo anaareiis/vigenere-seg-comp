@@ -86,6 +86,7 @@ std::string reference_encrypt(const std::string_view plaintext, const std::strin
 void test_classic_vector() {
     const vigenere::VigenereCipher cipher{"LEMON"};
     expect_equal(cipher.encrypt("ATTACKATDAWN"), "LXFOPVEFRNHR", "vetor classico");
+    expect_equal(cipher.decrypt("LXFOPVEFRNHR"), "ATTACKATDAWN", "decifracao classica");
 }
 
 void test_case_preservation() {
@@ -113,6 +114,8 @@ void test_in_place_api() {
     std::string message(1'000'000, 'Z');
     cipher.encrypt_in_place(message);
     expect_equal(message, std::string(1'000'000, 'A'), "API in-place");
+    cipher.decrypt_in_place(message);
+    expect_equal(message, std::string(1'000'000, 'Z'), "decifracao in-place");
 }
 
 void test_key_length() {
@@ -153,6 +156,11 @@ void test_generated_cases() {
             cipher.encrypt(message),
             reference_encrypt(message, key),
             "caso deterministico " + std::to_string(case_index)
+        );
+        expect_equal(
+            cipher.decrypt(cipher.encrypt(message)),
+            message,
+            "ida e volta " + std::to_string(case_index)
         );
     }
 }

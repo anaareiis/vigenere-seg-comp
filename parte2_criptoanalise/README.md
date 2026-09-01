@@ -79,3 +79,17 @@ A análise estatística precisa de grupos suficientemente longos. Textos curtos,
 um tamanho de chave incorreto ou um idioma diferente do selecionado podem gerar
 letras erradas. Por isso, o ranking completo retornado por `analisa_grupo`
 também pode ser usado pela integração para testar candidatos alternativos.
+
+## Pipeline completo
+
+O arquivo `pipeline.cpp` conecta a estimativa do tamanho, a recuperação da
+chave e a decifração. O executável `vigenere_ataque`, compilado pelo CMake da
+raiz do repositório, recebe o idioma, o tamanho máximo de chave e um arquivo
+de criptograma. Ele apresenta os tamanhos, chaves e textos claros dos melhores
+candidatos, permitindo a validação de legibilidade exigida no roteiro.
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+./build/vigenere_ataque pt 20 textos/criptograma_portugues.txt
+```
