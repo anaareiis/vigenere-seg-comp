@@ -1,0 +1,11 @@
+# Mensagem padrão (arquivo de teste, texto longo)
+  ./demo_chaves.sh chaves_pequenas.txt
+
+  # Mensagem própria direto na linha
+  ./demo_chaves.sh chaves_pequenas.txt "REUNIAO SECRETA AS DEZ HORAS NA PONTE VELHA"
+
+  # Mensagem de arquivo qualquer
+  ./demo_chaves.sh chaves_grandes.txt caminho/da/mensagem.txt
+
+  # Chaves grandes + mensagem curta = nunca quebra
+  ./demo_chaves.sh chaves_grandes.txt "MENSAGEM CURTA"
