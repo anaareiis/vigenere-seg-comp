@@ -20,6 +20,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{float}
 \usepackage[hidelinks]{hyperref}
 
 \newcommand{\pendente}[1]{\textcolor{red}{\textbf{[PENDENTE: #1]}}}
@@ -53,8 +54,8 @@ ataque para recuperação da chave por propriedades estatísticas da
 linguagem. A implementação inclui cifração, decifração, estimativa do
 tamanho por Índice de Coincidência e recuperação da chave por análise
 de frequência. O pipeline integrado foi validado com dados de teste;
-os resultados dos dois criptogramas oficiais serão incorporados após
-a disponibilização desses arquivos.
+no experimento controlado, recuperou corretamente o tamanho 9, a
+chave SEGURANCA e o texto claro completo.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -155,10 +156,11 @@ tamanho da chave (detalhado na Seção \ref{sec:experimental}).
 \item \textbf{Ambiente de compilação/execução:} Ubuntu 22.04, com
   compilador g++ 11.4.0. A validação desta versão foi feita localmente
   em modo de linha de comando.
-\item \textbf{Dados experimentais:} dois criptogramas fornecidos pela
-  disciplina --- um gerado a partir de texto em português, outro a
-  partir de texto em inglês, cifrados com chaves diferentes.
-  \pendente{adicionar os arquivos oficiais à pasta \texttt{textos/}}
+\item \textbf{Dados experimentais:} criptograma de demonstração em
+  português, produzido pelo grupo a partir de um texto claro conhecido
+  e da chave \texttt{SEGURANCA}. Os arquivos de entrada e referência
+  estão em \texttt{textos para testes/}. Os criptogramas mencionados no
+  roteiro não haviam sido disponibilizados até a realização do teste.
 \item \textbf{Estrutura do código:} cifrador
   (\texttt{parte1\_cifrador/}) implementado como biblioteca
   reutilizável, com interface de linha de comando, testes
@@ -203,19 +205,25 @@ primeira opção os tamanhos corretos 5, 7, 11 e 16 nos quatro
 criptogramas de teste; os testes de análise de frequência também
 passaram. Por fim, um teste integrado recuperou tamanho, chave e texto
 claro conhecidos. No total, os sete testes registrados no CMake raiz
-foram aprovados. Ainda falta validar o ataque com os dados oficiais.
+foram aprovados.
 
-\begin{table}[htbp]
-\caption{Resultados obtidos \pendente{preencher após execução da Parte II}}
+No experimento de demonstração, o programa recebeu apenas o idioma
+português, o limite de tamanho 20 e o criptograma. O primeiro resultado
+foi o tamanho 9 e a chave \texttt{SEGURANCA}; a decifração coincidiu
+integralmente com o texto de referência, preservando espaços,
+pontuação e parágrafos. O segundo resultado foi o tamanho 18 e a chave
+\texttt{SEGURANCASEGURANCA}, que gera o mesmo texto claro por ser uma
+repetição da chave fundamental.
+
+\begin{table}[H]
+\caption{Resultado do experimento controlado}
 \label{tab:resultados}
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|c|l|c|}
 \hline
-\textbf{Criptograma} & \textbf{Idioma} & \textbf{Tam. chave} & \textbf{Legível?} \\
+\textbf{Teste} & \textbf{Tam.} & \textbf{Chave recuperada} & \textbf{Correto?} \\
 \hline
-Criptograma 1 & Português & --- & --- \\
-\hline
-Criptograma 2 & Inglês & --- & --- \\
+Demonstração PT & 9 & SEGURANCA & Sim \\
 \hline
 \end{tabular}
 \end{table}
@@ -225,20 +233,22 @@ podem apresentar IC elevado; por isso, o estimador introduz uma
 tolerância estatística e favorece o menor candidato em resultados
 próximos. O pipeline preserva vários candidatos para inspeção, pois
 textos curtos e tamanhos incorretos podem prejudicar a análise de
-frequência. A avaliação final de legibilidade depende dos dois
-criptogramas oficiais.
+frequência. O candidato de tamanho 18 confirmou que múltiplos do
+período fundamental também podem produzir uma decifração correta;
+nesse caso, escolhe-se a menor chave equivalente.
 
 \section{Conclusões}
 \label{sec:conclusoes}
 
-Os resultados intermediários demonstram que um espaço de chaves grande
+Os resultados demonstram que um espaço de chaves grande
 ($26^L$) não é
 garantia de segurança quando a chave se repete ciclicamente sobre o
 texto --- a mesma vulnerabilidade que o Índice de Coincidência
 explora. Os testes confirmam a correção da cifração e decifração e
 mostram que o pipeline integrado recupera tamanho, chave e texto claro
-em dados controlados. Ainda é necessário avaliar os dois criptogramas
-oficiais antes de concluir sobre as chaves do experimento.
+em dados controlados. A recuperação exata da chave \texttt{SEGURANCA}
+e da mensagem confirma a integração dos módulos; entretanto, o uso de
+um único texto conhecido limita a generalização do experimento.
 Como contraponto teórico, uma chave do mesmo tamanho do
 texto, gerada aleatoriamente e usada uma única vez (\emph{One-Time
 Pad}), tornaria esse ataque estatístico ineficaz --- a fragilidade
