@@ -50,10 +50,11 @@
 \begin{abstract}
 Este trabalho apresenta a implementação da cifra de Vigenère e de um
 ataque para recuperação da chave por propriedades estatísticas da
-linguagem. A implementação atual inclui o cifrador e a estimativa do
-tamanho da chave por Índice de Coincidência, validados por testes. A
-recuperação das letras da chave e os resultados sobre os dois
-criptogramas serão incorporados após a integração final.
+linguagem. A implementação inclui cifração, decifração, estimativa do
+tamanho por Índice de Coincidência e recuperação da chave por análise
+de frequência. O pipeline integrado foi validado com dados de teste;
+os resultados dos dois criptogramas oficiais serão incorporados após
+a disponibilização desses arquivos.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -72,7 +73,7 @@ reutilização cíclica de uma chave curta introduz uma estrutura
 estatística explorável \cite{roteiro}.
 
 O trabalho está dividido em duas partes complementares: (i) um
-cifrador/decifrador a ser implementado do zero, sem bibliotecas
+cifrador/decifrador implementado do zero, sem bibliotecas
 criptográficas prontas; e (ii) um ataque de criptoanálise capaz de
 recuperar a chave de um criptograma desconhecido a partir de
 propriedades estatísticas da língua portuguesa e inglesa. O restante
@@ -162,8 +163,8 @@ tamanho da chave (detalhado na Seção \ref{sec:experimental}).
   (\texttt{parte1\_cifrador/}) implementado como biblioteca
   reutilizável, com interface de linha de comando, testes
   automatizados e benchmark de desempenho; módulo de criptoanálise
-  (\texttt{parte2\_criptoanalise/}) com estimador de tamanho da chave
-  e testes próprios.
+  (\texttt{parte2\_criptoanalise/}) com estimador de tamanho, análise
+  de frequência e pipeline para recuperação da chave e do texto claro.
 \end{itemize}
 
 \subsection{Análise de Resultados}
@@ -185,20 +186,24 @@ fundamentação da Seção \ref{sec:fundamentacao}:
   relativa de cada letra do subconjunto e testam-se os 26
   deslocamentos possíveis, comparando a distribuição observada com a
   distribuição esperada do idioma \cite{frequencias}; o deslocamento de maior
-  correlação será adotado como candidato à letra da chave.
+  correlação é adotado como candidato à letra da chave.
 \item \textbf{Reconstrução e validação}: as letras recuperadas
-  formarão a chave candidata, que será usada para decifrar o criptograma
-  completo. O resultado será avaliado quanto à legibilidade; se
+  formam a chave candidata, usada para decifrar o criptograma
+  completo. O executável apresenta vários tamanhos candidatos e seus
+  textos claros para avaliação de legibilidade; se
   necessário, letras específicas são refinadas manualmente.
 \end{enumerate}
 
-Os componentes disponíveis foram validados separadamente. O cifrador
-passou pelos nove grupos de testes existentes, incluindo o vetor
+Os componentes foram validados separadamente e em conjunto. O
+cifrador/decifrador passou pelos testes existentes, incluindo o vetor
 clássico, preservação de caixa, caracteres não alfabéticos, chave
-inválida e 500 casos determinísticos. O estimador identificou como
+inválida, CLI de decifração e 500 casos determinísticos de ida e volta.
+O estimador identificou como
 primeira opção os tamanhos corretos 5, 7, 11 e 16 nos quatro
-criptogramas de teste. Esses resultados verificam os módulos já
-implementados, mas ainda não equivalem à validação do ataque completo.
+criptogramas de teste; os testes de análise de frequência também
+passaram. Por fim, um teste integrado recuperou tamanho, chave e texto
+claro conhecidos. No total, os sete testes registrados no CMake raiz
+foram aprovados. Ainda falta validar o ataque com os dados oficiais.
 
 \begin{table}[htbp]
 \caption{Resultados obtidos \pendente{preencher após execução da Parte II}}
@@ -218,8 +223,10 @@ Criptograma 2 & Inglês & --- & --- \\
 \textbf{Ajustes e problemas encontrados:} tamanhos múltiplos da chave
 podem apresentar IC elevado; por isso, o estimador introduz uma
 tolerância estatística e favorece o menor candidato em resultados
-próximos. A recuperação das letras, a decifração e a avaliação de
-legibilidade dependem da integração ainda pendente.
+próximos. O pipeline preserva vários candidatos para inspeção, pois
+textos curtos e tamanhos incorretos podem prejudicar a análise de
+frequência. A avaliação final de legibilidade depende dos dois
+criptogramas oficiais.
 
 \section{Conclusões}
 \label{sec:conclusoes}
@@ -228,10 +235,10 @@ Os resultados intermediários demonstram que um espaço de chaves grande
 ($26^L$) não é
 garantia de segurança quando a chave se repete ciclicamente sobre o
 texto --- a mesma vulnerabilidade que o Índice de Coincidência
-explora. Os testes confirmam a correção da cifração e mostram que o IC
-é capaz de priorizar o tamanho verdadeiro nas amostras disponíveis.
-Ainda é necessário integrar a análise de frequências e avaliar os dois
-criptogramas oficiais antes de concluir sobre a recuperação das chaves.
+explora. Os testes confirmam a correção da cifração e decifração e
+mostram que o pipeline integrado recupera tamanho, chave e texto claro
+em dados controlados. Ainda é necessário avaliar os dois criptogramas
+oficiais antes de concluir sobre as chaves do experimento.
 Como contraponto teórico, uma chave do mesmo tamanho do
 texto, gerada aleatoriamente e usada uma única vez (\emph{One-Time
 Pad}), tornaria esse ataque estatístico ineficaz --- a fragilidade
