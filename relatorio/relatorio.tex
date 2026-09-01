@@ -53,9 +53,11 @@ Este trabalho apresenta a implementação da cifra de Vigenère e de um
 ataque para recuperação da chave por propriedades estatísticas da
 linguagem. A implementação inclui cifração, decifração, estimativa do
 tamanho por Índice de Coincidência e recuperação da chave por análise
-de frequência. O pipeline integrado foi validado com dados de teste;
-no experimento controlado, recuperou corretamente o tamanho 9, a
-chave SEGURANCA e o texto claro completo.
+de frequência. Além da validação funcional, 7.200 ataques controlados
+quantificaram o efeito do tamanho da mensagem, da chave e do
+embaralhamento. Para uma chave de nove letras, o pipeline recuperou a
+chave exata em 96,7\% das tentativas com 432 letras. Benchmarks também
+avaliaram vazão, tamanho das palavras e paralelismo em lotes.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -138,8 +140,8 @@ IC = \frac{\sum_i n_i (n_i - 1)}{N (N - 1)}
 \end{equation}
 
 onde $n_i$ é a frequência da letra $i$ no texto e $N$ o tamanho do
-texto. Um texto em linguagem natural tem IC próximo de
-$0{,}065$--$0{,}075$; um texto com distribuição uniforme de letras
+texto. A distribuição não uniforme do português usada no projeto tem
+IC teórico $\sum_i p_i^2 \approx 0{,}078$; uma distribuição uniforme
 (como um criptograma de Vigenère mal alinhado) tem IC próximo de
 $1/26 \approx 0{,}038$. Essa diferença é a base para estimar o
 tamanho da chave (detalhado na Seção \ref{sec:experimental}).
@@ -151,11 +153,13 @@ tamanho da chave (detalhado na Seção \ref{sec:experimental}).
 
 \begin{itemize}
 \item \textbf{Linguagem e ferramentas:} C++17, biblioteca padrão,
-  CMake 3.22.1 e testes executáveis próprios, sem bibliotecas de cifra
-  ou criptoanálise pronta.
-\item \textbf{Ambiente de compilação/execução:} Ubuntu 22.04, com
-  compilador g++ 11.4.0. A validação desta versão foi feita localmente
-  em modo de linha de comando.
+  CMake 3.28.3 e testes executáveis próprios, sem bibliotecas de cifra
+  ou criptoanálise pronta. Os gráficos foram renderizados com
+  Matplotlib 3.10.7 a partir dos CSVs preservados no projeto.
+\item \textbf{Ambiente de compilação/execução:} Ubuntu 24.04.4,
+  g++ 13.3.0 com \texttt{-O3 -DNDEBUG}, em um AMD Ryzen 7 5700U
+  (8 núcleos físicos, 16 processadores lógicos) e 5,6 GiB de RAM
+  visíveis ao sistema.
 \item \textbf{Dados experimentais:} criptograma de demonstração em
   português, produzido pelo grupo a partir de um texto claro conhecido
   e da chave \texttt{SEGURANCA}. Os arquivos de entrada e referência
@@ -169,7 +173,7 @@ tamanho da chave (detalhado na Seção \ref{sec:experimental}).
   de frequência e pipeline para recuperação da chave e do texto claro.
 \end{itemize}
 
-\subsection{Análise de Resultados}
+\subsection{Metodologia da Criptoanálise}
 
 Metodologia do ataque de recuperação de chave, alinhada à
 fundamentação da Seção \ref{sec:fundamentacao}:
@@ -187,14 +191,35 @@ fundamentação da Seção \ref{sec:fundamentacao}:
   (equivalente a uma Cifra de César). Calcula-se a frequência
   relativa de cada letra do subconjunto e testam-se os 26
   deslocamentos possíveis, comparando a distribuição observada com a
-  distribuição esperada do idioma \cite{frequencias}; o deslocamento de maior
-  correlação é adotado como candidato à letra da chave.
+  distribuição esperada do idioma \cite{frequencias} pela estatística de
+  qui-quadrado; o deslocamento de menor valor é adotado como candidato.
 \item \textbf{Reconstrução e validação}: as letras recuperadas
   formam a chave candidata, usada para decifrar o criptograma
   completo. O executável apresenta vários tamanhos candidatos e seus
   textos claros para avaliação de legibilidade; se
   necessário, letras específicas são refinadas manualmente.
 \end{enumerate}
+
+\subsection{Protocolo dos Experimentos}
+
+Para não confundir interceptação da comunicação com sucesso do ataque,
+definiu-se \emph{interceptação bem-sucedida} como a recuperação da chave
+exata no primeiro candidato do pipeline. Foram testadas chaves aleatórias de
+3, 6, 9 e 12 letras, com 4 a 128 letras de criptograma por posição da chave
+($N/L$). Para cada combinação foram feitas 60 tentativas determinísticas, com
+o estimador procurando períodos de 1 a $2L$. As amostras vieram do texto de
+demonstração, variando o ponto inicial, sob três condições: ordem original,
+palavras embaralhadas e letras embaralhadas. Assim, a taxa apresentada é
+empírica para este corpus e este ataque, não uma probabilidade universal.
+
+Nos ensaios de tempo, cada ponto é a mediana de cinco rodadas. A vazão da
+cifra processou ao menos 64 MiB por rodada; no teste paralelo, cada thread
+processou uma mensagem independente de 8 MiB seis vezes. Essa separação é
+necessária porque o núcleo implementado cifra uma única mensagem em uma
+thread; o paralelismo mede capacidade de atender um lote, sem atribuir ao
+código uma paralelização que ele não possui.
+
+\subsection{Análise de Resultados}
 
 Os componentes foram validados separadamente e em conjunto. O
 cifrador/decifrador passou pelos testes existentes, incluindo o vetor
@@ -215,44 +240,117 @@ pontuação e parágrafos. O segundo resultado foi o tamanho 18 e a chave
 \texttt{SEGURANCASEGURANCA}, que gera o mesmo texto claro por ser uma
 repetição da chave fundamental.
 
-\begin{table}[H]
-\caption{Resultado do experimento controlado}
-\label{tab:resultados}
-\centering
-\begin{tabular}{|l|c|l|c|}
-\hline
-\textbf{Teste} & \textbf{Tam.} & \textbf{Chave recuperada} & \textbf{Correto?} \\
-\hline
-Demonstração PT & 9 & SEGURANCA & Sim \\
-\hline
-\end{tabular}
-\end{table}
+\subsubsection{Letras mais usadas e estrutura que sobrevive à cifra}
 
-\textbf{Ajustes e problemas encontrados:} tamanhos múltiplos da chave
-podem apresentar IC elevado; por isso, o estimador introduz uma
-tolerância estatística e favorece o menor candidato em resultados
-próximos. O pipeline preserva vários candidatos para inspeção, pois
-textos curtos e tamanhos incorretos podem prejudicar a análise de
-frequência. O candidato de tamanho 18 confirmou que múltiplos do
-período fundamental também podem produzir uma decifração correta;
-nesse caso, escolhe-se a menor chave equivalente.
+No corpus observado, as letras mais frequentes foram A (15,81\%), E
+(12,86\%) e O (9,27\%), próximas das três maiores frequências da tabela
+de português usada pelo ataque. A Fig. \ref{fig:frequencias-ioc}(a) mostra
+que a chave de nove letras espalha esses picos por diferentes deslocamentos:
+a distribuição marginal do criptograma fica mais plana, mas não uniforme.
+O ataque não compara o criptograma inteiro diretamente com o idioma; ele
+separa as posições cifradas pela mesma letra da chave, desfazendo a mistura.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figuras/frequencias_ioc.pdf}
+\caption{Relação entre frequência e periodicidade. (a) Frequências de
+letras esperadas em português, observadas no texto claro e após cifração com
+\texttt{SEGURANCA}. (b) IC médio do criptograma para períodos de 1 a 20;
+os picos em 9 e 18 revelam o período fundamental e seu múltiplo.}
+\label{fig:frequencias-ioc}
+\end{figure*}
+
+Essa separação fica visível na Fig. \ref{fig:frequencias-ioc}(b): o IC
+médio sobe de aproximadamente 0,042 nos candidatos mal alinhados para 0,0775
+em $L=9$ e 0,0762 em $L=18$. Tamanhos múltiplos podem apresentar IC elevado;
+por isso, o estimador usa uma tolerância e favorece o menor candidato quando
+os valores são próximos. O resultado de tamanho 18 confirma que uma repetição
+da chave fundamental também decifra corretamente.
+
+\subsubsection{Quando o ataque passa a funcionar}
+
+A Fig. \ref{fig:interceptacao} mostra que o parâmetro decisivo não é só o
+tamanho absoluto da mensagem ou da chave, mas quantas observações cada
+posição da chave recebe, $N/L$. Se $L$ já era conhecido, todos os tamanhos
+testados alcançaram ao menos 88,3\% de recuperação exata com 24 letras por
+posição e 100\% com 48. No pipeline completo, que também precisa descobrir
+$L$, a transição foi mais lenta: para $L=9$, o sucesso passou de 30\% em
+$N/L=16$ (144 letras) para 96,7\% em $N/L=48$ (432 letras). Todas as quatro
+chaves atingiram 100\% em $N/L=128$ no corpus ensaiado.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figuras/interceptacao.pdf}
+\caption{Taxa empírica de recuperação da chave exata em 60 tentativas por
+ponto. (a) Efeito conjunto de $L$ e $N/L$ no pipeline completo, para o texto
+em ordem original. (b) Ordem original, palavras embaralhadas e letras
+embaralhadas para $L=9$; a curva tracejada isola a análise de frequência
+quando o período correto já é conhecido.}
+\label{fig:interceptacao}
+\end{figure*}
+
+Embaralhar não constitui defesa contra este método, pois preserva as
+frequências de uma letra e não remove a repetição da chave. Para $L=9$ e 864
+letras ($N/L=96$), a recuperação ficou em 100\% na ordem original e 98,3\%
+nos dois tipos de embaralhamento. As diferenças nos pontos intermediários
+decorrem de quais letras caem em cada coluna e da amostra de 60 tentativas,
+mas as três curvas convergem quando há texto suficiente.
+
+O comprimento das palavras do texto claro também não altera a segurança se
+a sequência de letras for mantida: espaços são preservados e não avançam a
+chave. Em contraste, uma palavra-chave maior divide o mesmo texto em mais
+colunas e reduz a amostra de cada coluna; por isso mensagens maiores são
+necessárias para manter o mesmo $N/L$.
+
+\subsubsection{Eficiência computacional e uso de núcleos}
+
+A Fig. \ref{fig:desempenho} reúne os resultados computacionais. O núcleo
+\emph{in-place} sustentou cerca de 771--777 MiB/s entre 1 KiB e 1 MiB e
+caiu para 498 MiB/s em 64 MiB, região em que cópias e hierarquia de memória
+passam a dominar. A API com retorno é ligeiramente mais lenta por copiar a
+entrada; em 4 MiB, por exemplo, foram 650 contra 740 MiB/s.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figuras/desempenho.pdf}
+\caption{Desempenho medido no Ryzen 7 5700U. (a) Vazão por tamanho e API.
+(b) Vazão por byte para entradas de 16 MiB com diferentes quantidades de
+letras entre espaços. (c) Vazão agregada ao cifrar mensagens independentes;
+uma única mensagem continua monothread. (d) Tempo do estimador e do pipeline
+com limite de chave 20 e cinco candidatos.}
+\label{fig:desempenho}
+\end{figure*}
+
+Palavras curtas parecem mais rápidas por byte: com uma letra entre espaços,
+só 50\% dos bytes exigem deslocamento e a vazão foi 1027 MiB/s; sem espaços,
+todos os bytes são cifrados e a vazão foi 690 MiB/s. Isso não é ganho
+criptográfico: normalizar pelo número de letras úteis elimina essa vantagem.
+O custo do ataque cresceu aproximadamente de forma linear após o custo fixo
+inicial, chegando a 1,58 ms para 16 mil letras e cinco candidatos.
+
+Em lotes, a vazão aumentou de 759 MiB/s com uma thread para 3560 MiB/s com
+oito e 3942 MiB/s com 16, respectivamente 4,69 e 5,19 vezes a base. O ganho
+pequeno de 8 para 16 threads (10,7\%) indica saturação após os oito núcleos
+físicos, por SMT e largura de banda de memória. Portanto, a forma útil de
+explorar vários núcleos nesta versão é cifrar mensagens independentes; uma
+única mensagem não fica mais rápida automaticamente.
 
 \section{Conclusões}
 \label{sec:conclusoes}
 
-Os resultados demonstram que um espaço de chaves grande
-($26^L$) não é
-garantia de segurança quando a chave se repete ciclicamente sobre o
-texto --- a mesma vulnerabilidade que o Índice de Coincidência
-explora. Os testes confirmam a correção da cifração e decifração e
-mostram que o pipeline integrado recupera tamanho, chave e texto claro
-em dados controlados. A recuperação exata da chave \texttt{SEGURANCA}
-e da mensagem confirma a integração dos módulos; entretanto, o uso de
-um único texto conhecido limita a generalização do experimento.
-Como contraponto teórico, uma chave do mesmo tamanho do
-texto, gerada aleatoriamente e usada uma única vez (\emph{One-Time
-Pad}), tornaria esse ataque estatístico ineficaz --- a fragilidade
-está na repetição da chave, não na estrutura da cifra em si.
+Os resultados demonstram que $26^L$ chaves possíveis não garantem
+segurança quando a chave se repete. Com o período conhecido, 24 letras
+por posição deram ao menos 88,3\% de sucesso; no pipeline completo com
+$L=9$, 432 letras deram 96,7\%. Embaralhar palavras ou letras não
+removeu a vulnerabilidade, pois preserva frequências e periodicidade.
+
+Computacionalmente, o núcleo atingiu 771--777 MiB/s até 1 MiB, e lotes
+independentes chegaram a 5,19 vezes a vazão de uma thread; uma mensagem
+isolada permanece monothread. As taxas são limitadas ao corpus e à
+máquina ensaiados, mas expõem a variável central: a quantidade de
+amostras por posição da chave. Uma chave aleatória, do tamanho do texto
+e usada uma única vez (\emph{One-Time Pad}) eliminaria essa repetição e
+tornaria o ataque estatístico ineficaz.
 
 \begin{thebibliography}{9}
 \bibitem{roteiro}
