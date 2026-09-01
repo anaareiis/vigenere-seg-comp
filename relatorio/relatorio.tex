@@ -1,37 +1,21 @@
-% =====================================================================
-% NOTA (remover antes da entrega final):
-% Este documento segue a estrutura exigida em formatorelatorios.pdf
-% (artigo IEEE de conferencia, duas colunas, sem folha de capa, secoes a-e).
-%
-% PONTO A CONFIRMAR COM A PROFESSORA:
-% O formato geral diz "max 03 autores", mas o grupo tem 4 integrantes.
-% Para o tamanho, adotou-se o limite especifico de 4 paginas do roteiro.
-% As secoes sobre topologia de rede foram adaptadas ao ambiente de execucao.
-%
-% Para compilar: pdflatex relatorio.tex (duas vezes, para o indice/refs)
-% Se nao houver LaTeX instalado localmente, use o Overleaf
-% (overleaf.com) e importe este arquivo com o template "IEEE Conference".
-% =====================================================================
 \documentclass[conference]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazilian]{babel}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{listings}
-\usepackage{xcolor}
 \usepackage{float}
 \usepackage[hidelinks]{hyperref}
 
-\newcommand{\pendente}[1]{\textcolor{red}{\textbf{[PENDENTE: #1]}}}
+% Mantém compacta a separação vertical entre figuras de duas colunas e texto.
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{8pt plus 2pt minus 2pt}
 
 \begin{document}
 
 \title{Cifra de Vigenère: Implementação e Criptoanálise\\
 \large Trabalho de Implementação 1 --- CIC0201 Segurança Computacional}
 
-% NOTA: formatorelatorios.pdf pede no maximo 3 autores; o grupo tem 4.
-% Ajustar conforme orientacao da professora.
 \author{
 \IEEEauthorblockN{Ana Luísa Reis Nascente}
 \IEEEauthorblockA{Matrícula: 211045688}
@@ -163,12 +147,13 @@ tamanho da chave (detalhado na Seção \ref{sec:experimental}).
 \item \textbf{Dados experimentais:} criptograma de demonstração em
   português, produzido pelo grupo a partir de um texto claro conhecido
   e da chave \texttt{SEGURANCA}. Os arquivos de entrada e referência
-  estão em \texttt{textos para testes/}. Os criptogramas mencionados no
-  roteiro não haviam sido disponibilizados até a realização do teste.
-\item \textbf{Estrutura do código:} cifrador
-  (\texttt{parte1\_cifrador/}) implementado como biblioteca
-  reutilizável, com interface de linha de comando, testes
-  automatizados e benchmark de desempenho; módulo de criptoanálise
+  estão em \texttt{textos para testes/}. Como os criptogramas previstos no
+  roteiro não foram fornecidos, a professora autorizou o uso de dados de
+  teste produzidos pelo grupo.
+\item \textbf{Estrutura do código:} biblioteca de ciframento
+  reutilizável (\texttt{parte1\_cifrador/}), acompanhada de interface
+  de linha de comando, testes automatizados e benchmark de desempenho;
+  módulo de criptoanálise
   (\texttt{parte2\_criptoanalise/}) com estimador de tamanho, análise
   de frequência e pipeline para recuperação da chave e do texto claro.
 \end{itemize}
@@ -368,5 +353,10 @@ Wikipédia, ``Frequência de letras.'' [Online]. Disponível em:
 \url{https://pt.wikipedia.org/wiki/Frequencia_de_letras}.
 Acesso em: 31 ago. 2026.
 \end{thebibliography}
+
+\begin{center}
+\footnotesize\textbf{Repositório do projeto:}
+\url{https://github.com/anaareiis/vigenere-seg-comp}
+\end{center}
 
 \end{document}

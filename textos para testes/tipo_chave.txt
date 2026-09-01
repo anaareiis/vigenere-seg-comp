@@ -1,0 +1,13 @@
+# Executar a partir da raiz do repositório
+
+  # Mensagem padrão (arquivo de teste, texto longo)
+  "textos para testes/demo_chaves.sh"
+
+  # Mensagem própria direto na linha
+  "textos para testes/demo_chaves.sh" "textos para testes/chaves_pequenas.txt" "REUNIAO SECRETA AS DEZ HORAS NA PONTE VELHA"
+
+  # Mensagem de arquivo qualquer
+  "textos para testes/demo_chaves.sh" "textos para testes/chaves_grandes.txt" caminho/da/mensagem.txt
+
+  # Chaves grandes + mensagem curta = nunca quebra
+  "textos para testes/demo_chaves.sh" "textos para testes/chaves_grandes.txt" "MENSAGEM CURTA"

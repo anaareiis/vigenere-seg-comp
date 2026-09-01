@@ -11,23 +11,27 @@ ministrada pela Profa. Priscila Solis na Universidade de Brasília.
   Coincidência e separação do criptograma por posição da chave.
 - **Pessoa C - Marina Pimentel Moreno (222014071):** análise de frequência em português e inglês,
   recuperação dos caracteres e reconstrução da chave.
-- **Pessoa D - Ana Luísa Reis Nascente (211045688):** integração, execução do pipeline nos
-  dois criptogramas, validação dos resultados e relatório técnico.
+- **Pessoa D - Ana Luísa Reis Nascente (211045688):** integração, execução do pipeline no
+  criptograma de teste, validação dos resultados e relatório técnico.
 
-## Estado atual
+A professora esclareceu que o trabalho poderia ser realizado por quatro
+integrantes e que, como os criptogramas previstos no roteiro não foram
+fornecidos, o grupo poderia produzir os próprios dados de teste.
 
-- [x] Cifração de Vigenère em C++17, com CLI, testes e benchmark.
-- [x] Tratamento documentado de maiúsculas, minúsculas, espaços, números e
+## O que foi implementado
+
+- Cifração de Vigenère em C++17, com CLI, testes e benchmark.
+- Tratamento documentado de maiúsculas, minúsculas, espaços, números e
   caracteres especiais.
-- [x] Validação da chave de entrada.
-- [x] Estimativa de tamanhos prováveis da chave por Índice de Coincidência.
-- [x] Testes da estimativa com chaves de tamanhos 5, 7, 11 e 16.
-- [x] Decifração com chave conhecida.
-- [x] Análise de frequência para português e inglês.
-- [x] Recuperação das letras e reconstrução da chave para tamanho conhecido.
-- [x] Decifração automática dos criptogramas com as chaves candidatas.
-- [x] Integração e validação do pipeline completo com dados de teste.
-- [ ] Resultados finais e conclusão do relatório.
+- Validação da chave de entrada.
+- Estimativa de tamanhos prováveis da chave por Índice de Coincidência.
+- Testes da estimativa com chaves de tamanhos 5, 7, 11 e 16.
+- Decifração com chave conhecida.
+- Análise de frequência para português e inglês.
+- Recuperação das letras e reconstrução da chave para tamanho conhecido.
+- Decifração automática dos criptogramas com as chaves candidatas.
+- Integração e validação do pipeline completo com dados de teste.
+- Resultados finais e conclusão do relatório.
 
 ## Estrutura do projeto
 
@@ -35,7 +39,7 @@ ministrada pela Profa. Priscila Solis na Universidade de Brasília.
 vigenere-seg-comp/
 |-- parte1_cifrador/        # biblioteca, CLI, testes e benchmark
 |-- parte2_criptoanalise/   # estimativa da chave e etapas do ataque
-|-- textos/                 # criptogramas e textos de referencia
+|-- textos para testes/     # criptograma e texto claro de demonstracao
 |-- relatorio/              # relatorio tecnico em LaTeX
 `-- README.md
 ```
@@ -63,6 +67,11 @@ Exemplo de cifração:
 
 Detalhes da API, testes e benchmark estão em
 [`parte1_cifrador/README.md`](parte1_cifrador/README.md).
+
+Esse comando cria uma build independente, restrita à Parte I, em
+`parte1_cifrador/build/`. A build integrada usada no pipeline, descrita a
+seguir, é criada separadamente em `build/`; os binários de uma não aparecem
+no diretório da outra.
 
 ## Parte II - Estimativa do tamanho da chave
 
@@ -114,8 +123,7 @@ ctest --test-dir build --output-on-failure
 Para atacar um criptograma salvo em arquivo:
 
 ```bash
-./build/vigenere_ataque pt 20 textos/criptograma_portugues.txt
-./build/vigenere_ataque en 20 textos/criptograma_ingles.txt
+./build/vigenere_ataque pt 20 "textos para testes/criptograma_teste_portugues.txt"
 ```
 
 Os argumentos são o idioma (`pt` ou `en`), o tamanho máximo de chave e o
