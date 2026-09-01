@@ -1,0 +1,195 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+\usetheme[progressstyle=movingCircCnt]{Feather}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,brazil]{babel}
+\usepackage{helvet}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{unbblue}{RGB}{0,51,102}
+\definecolor{unbgreen}{RGB}{33,140,33}
+\definecolor{softgreen}{RGB}{230,244,230}
+\setbeamercolor{alerted text}{fg=unbgreen}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{itemize item}{\color{unbgreen}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{unbgreen}$\bullet$}
+
+\title[Cifra de Vigenère]{\textbf{Cifra de Vigenère:\\Implementação e Criptoanálise}}
+\subtitle[CIC0201]{Trabalho de Implementação 1 -- CIC0201}
+\author[Grupo Vigenère]{Ana Luísa Reis Nascente \and Gabriel de Sousa\\Marina Pimentel Moreno \and Pedro de Paula Campos}
+\institute[]{Segurança Computacional\\Universidade de Brasília}
+\date{1 de setembro de 2026}
+
+\newcommand{\source}[1]{\vfill{\tiny\color{gray}Fonte: #1}}
+
+\begin{document}
+
+{\1
+\begin{frame}[plain,noframenumbering]
+  \titlepage
+\end{frame}}
+
+\section{Introdução e contexto}
+\begin{frame}{Introdução e contexto}{Por que estudar Vigenère?}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.57\textwidth}
+      \begin{itemize}
+        \item Cifra clássica de \textbf{substituição polialfabética}: cada posição pode usar um deslocamento diferente.
+        \item Uma chave de comprimento $L$ cria um espaço de $26^L$ possibilidades.
+        \item Porém, a \textbf{repetição cíclica} da chave mantém padrões estatísticos da linguagem.
+      \end{itemize}
+    \column{0.39\textwidth}
+      \begin{block}{Objetivo do trabalho}
+        Implementar a cifra do zero e recuperar \textbf{tamanho da chave}, \textbf{chave} e \textbf{texto claro} sem usar bibliotecas criptográficas prontas.
+      \end{block}
+  \end{columns}
+  \source{Roteiro do Trabalho de Implementação 1 -- CIC0201, UnB (2026).}
+\end{frame}
+
+\section{Técnica teórica}
+\begin{frame}{Técnica teórica}{Cifração e decifração}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.50\textwidth}
+      \begin{block}{Vigenère}
+        \centering
+        $C_i=(P_i+K_{i\bmod L})\bmod 26$\\[8pt]
+        $P_i=(C_i-K_{i\bmod L}+26)\bmod 26$
+      \end{block}
+      \vspace{4pt}
+      A chave é repetida sobre as letras do texto, produzindo uma sequência de cifras de César.
+    \column{0.46\textwidth}
+      \begin{block}{Política adotada}
+        \begin{itemize}
+          \item somente A--Z e a--z são cifrados;
+          \item maiúsculas e minúsculas são preservadas;
+          \item espaços, números, acentos e pontuação não mudam;
+          \item esses caracteres não avançam a chave.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Técnica teórica}{Como o ataque recupera a chave}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \begin{block}{1. Índice de Coincidência}
+        \centering
+        $IC=\dfrac{\sum_i n_i(n_i-1)}{N(N-1)}$
+      \end{block}
+      \begin{itemize}
+        \item linguagem natural: aproximadamente 0,065--0,075;
+        \item distribuição uniforme: aproximadamente $1/26=0,038$;
+        \item o maior IC médio indica períodos prováveis da chave.
+      \end{itemize}
+    \column{0.48\textwidth}
+      \begin{block}{2. Análise de frequência}
+        \begin{itemize}
+          \item divide o criptograma por posição da chave;
+          \item cada grupo vira uma cifra de César;
+          \item testa os 26 deslocamentos;
+          \item compara com frequências de português ou inglês e reconstrói a chave.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+  \source{Friedman, \textit{The Index of Coincidence and Its Applications in Cryptography} (1922).}
+\end{frame}
+
+\begin{frame}{Técnica teórica}{Pipeline integrado}
+  \centering
+  \begin{tikzpicture}[
+    node distance=5mm,
+    box/.style={draw=unbblue, rounded corners, fill=softgreen, minimum height=12mm,
+      text width=22mm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=2.5mm]}, thick, draw=unbgreen}
+  ]
+    \node[box] (in) {Criptograma};
+    \node[box,right=of in] (ic) {Estimar $L$\\pelo IC};
+    \node[box,right=of ic] (freq) {Analisar\\frequências};
+    \node[box,right=of freq] (key) {Reconstruir\\a chave};
+    \node[box,right=of key] (out) {Decifrar e\\validar};
+    \draw[arrow] (in) -- (ic);
+    \draw[arrow] (ic) -- (freq);
+    \draw[arrow] (freq) -- (key);
+    \draw[arrow] (key) -- (out);
+  \end{tikzpicture}
+
+  \vspace{12pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+      \textbf{Componentes:} cifrador/decifrador, estimador, frequências PT/EN e ataque automático.
+    \column{0.48\textwidth}
+      \textbf{Saída:} vários candidatos ordenados para avaliar legibilidade e períodos equivalentes.
+  \end{columns}
+\end{frame}
+
+\section{Resultados}
+\begin{frame}{Resultados}{Estratégia de validação}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.55\textwidth}
+      \begin{itemize}
+        \item Projeto unificado em C++17 e CMake.
+        \item Testes do cifrador, CLI, preservação de caracteres e entradas inválidas.
+        \item 500 casos determinísticos de cifrar e decifrar.
+        \item Testes do estimador com chaves de tamanhos 5, 7, 11 e 16.
+        \item Teste integrado com texto conhecido em português.
+      \end{itemize}
+    \column{0.39\textwidth}
+      \begin{block}{Resultado da suíte}
+        \centering
+        {\fontsize{28}{32}\selectfont\color{unbgreen}\textbf{7/7}}\\[4pt]
+        testes aprovados
+      \end{block}
+      \begin{block}{Entrada do ataque}
+        Idioma: PT\\
+        Limite: 20\\
+        Chave desconhecida pelo pipeline
+      \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultados}{Experimento controlado em português}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{block}{Primeiro candidato}
+        \centering
+        \textbf{Tamanho: 9}\\[5pt]
+        {\Large\ttfamily\color{unbgreen}SEGURANCA}
+      \end{block}
+      \begin{itemize}
+        \item texto claro recuperado integralmente;
+        \item espaços, pontuação e parágrafos preservados;
+        \item resultado igual ao arquivo de referência.
+      \end{itemize}
+    \column{0.44\textwidth}
+      \begin{alertblock}{Período equivalente}
+        O segundo candidato foi tamanho 18 e chave
+        \begin{center}
+          \ttfamily SEGURANCASEGURANCA
+        \end{center}
+        Ele também decifra corretamente por repetir duas vezes a chave fundamental.
+      \end{alertblock}
+      \textbf{Decisão:} priorizar a menor chave equivalente.
+  \end{columns}
+  \source{Arquivos e execução registrados em \texttt{textos para testes/README.md}.}
+\end{frame}
+
+\section{Conclusões}
+\begin{frame}{Conclusões}{O que o experimento demonstrou}
+  \begin{itemize}
+    \item A implementação cifra e decifra corretamente, preservando a política de caracteres definida.
+    \item O pipeline recuperou \textbf{tamanho 9}, \textbf{chave SEGURANCA} e o \textbf{texto claro completo}.
+    \item Um espaço de chaves grande não garante segurança quando uma chave curta é reutilizada ciclicamente.
+    \item O desempenho da análise depende do tamanho do texto, do idioma correto e da escolha entre períodos equivalentes.
+  \end{itemize}
+
+  \vspace{6pt}
+  \begin{block}{Conclusão central}
+    A vulnerabilidade explorada está na \textbf{repetição da chave}: uma chave aleatória, do tamanho da mensagem e usada uma única vez (One-Time Pad) não apresenta esse mesmo padrão estatístico.
+  \end{block}
+\end{frame}
+
+\end{document}
