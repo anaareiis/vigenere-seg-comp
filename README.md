@@ -23,8 +23,9 @@ ministrada pela Profa. Priscila Solis na Universidade de Brasília.
 - [x] Estimativa de tamanhos prováveis da chave por Índice de Coincidência.
 - [x] Testes da estimativa com chaves de tamanhos 5, 7, 11 e 16.
 - [ ] Decifração com chave conhecida.
-- [ ] Análise de frequência para português e inglês.
-- [ ] Reconstrução automática da chave e decifração dos criptogramas.
+- [x] Análise de frequência para português e inglês.
+- [x] Recuperação das letras e reconstrução da chave para tamanho conhecido.
+- [ ] Decifração automática dos criptogramas com as chaves candidatas.
 - [ ] Integração e validação do pipeline completo.
 - [ ] Resultados finais e conclusão do relatório.
 

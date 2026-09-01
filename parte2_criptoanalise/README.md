@@ -35,6 +35,47 @@ Para garantir que o código seja robusto e eficiente em C++, as seguintes decis�
 
 Para utilizar este módulo em outras partes do projeto, basta incluir o arquivo de cabeçalho correspondente:
 
-```#include "estimativa_tamanho_chave.h"```
+```cpp
+#include "estimativa_tamanho_chave.h"
+```
 
-(Incluir o caminho relativo)
+## Análise de frequência e recuperação da chave
+
+O arquivo `analise_frequencia.cpp` implementa a etapa seguinte do ataque.
+Recebido um tamanho de chave, o criptograma é normalizado e separado em uma
+coluna para cada posição da chave. Cada coluna equivale a uma cifra de César.
+
+Para cada coluna, os 26 deslocamentos são comparados com as frequências de
+letras de português ou inglês usando a estatística de qui-quadrado. O menor
+valor indica a melhor aderência ao idioma. A função `analisa_grupo` devolve
+todos os deslocamentos em ordem de probabilidade e `recupera_chave` combina o
+melhor deslocamento de cada coluna.
+
+Exemplo:
+
+```cpp
+#include "analise_frequencia.h"
+
+std::string chave = recupera_chave(
+    criptograma,
+    tamanho_estimado,
+    Idioma::Portugues
+);
+```
+
+Para compilar e executar os testes com GCC:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -Wpedantic \
+  parte2_criptoanalise/analise_frequencia.cpp \
+  parte2_criptoanalise/testes/teste_analise_frequencia.cpp \
+  -o teste_analise_frequencia
+./teste_analise_frequencia
+```
+
+### Limitações
+
+A análise estatística precisa de grupos suficientemente longos. Textos curtos,
+um tamanho de chave incorreto ou um idioma diferente do selecionado podem gerar
+letras erradas. Por isso, o ranking completo retornado por `analisa_grupo`
+também pode ser usado pela integração para testar candidatos alternativos.
